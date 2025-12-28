@@ -10,14 +10,10 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.lsp.api.LspServerDescriptor
-import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
-import com.intellij.platform.lsp.api.customization.LspFormattingSupport
-import org.eclipse.lsp4j.services.LanguageServer
 import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.system.CpuArch
 import com.intellij.util.text.SemVer
+import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.engine.ProxyBuilder
@@ -41,19 +37,17 @@ import kotlin.io.path.setPosixFilePermissions
 
 data class TargetReleaseInfo(val tag: String, val downloadUrl: String)
 
-class JsonnetLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "Jsonnet") {
+class JsonnetLanguageServer(private val project: Project) : OSProcessStreamConnectionProvider() {
 
-    private val log = Logger.getInstance(JsonnetLspServerDescriptor::class.java)
+    private val log = Logger.getInstance(JsonnetLanguageServer::class.java)
 
-    private val binFile: File by lazy {
-        ensureBinaryDownloaded()
+    init {
+        val binFile = ensureBinaryDownloaded()
+        val commandLine = createCommandLine(binFile)
+        setCommandLine(commandLine)
     }
 
-    override fun isSupportedFile(file: VirtualFile): Boolean {
-        return file.extension == "jsonnet" || file.extension == "libsonnet"
-    }
-
-    override fun createCommandLine(): GeneralCommandLine {
+    private fun createCommandLine(binFile: File): GeneralCommandLine {
         val settings = JLSSettingsStateComponent.instance.state
         val commandLine = GeneralCommandLine(binFile.absolutePath)
 
@@ -208,7 +202,7 @@ class JsonnetLspServerDescriptor(project: Project) : ProjectWideLspServerDescrip
             log.info("Saved binary to ${binFile.name}")
             Notification(
                 "lsp",
-                "Language Server jsonnet-language-server (version ${repoInfo.tag}) downloaded",
+                "Language Server jsonnet-language-server (version ${repoInfo.tag}) downloaded. Please restart the IDE.",
                 NotificationType.IDE_UPDATE
             )
                 .notify(project)

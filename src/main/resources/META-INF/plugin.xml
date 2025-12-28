@@ -6,11 +6,36 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <!-- Jsonnet Language Server -->
+        <server id="jsonnetLanguageServerId"
+                name="Jsonnet Language Server"
+                factoryClass="com.github.zzehring.intellijjsonnet.JsonnetLanguageServerFactory">
+            <description><![CDATA[
+Provides language support for Jsonnet files using the
+<a href="https://github.com/grafana/jsonnet-language-server">Grafana Jsonnet Language Server</a>.
+<br/><br/>
+Features:
+<ul>
+  <li>Go-to definition (scopes: dollar, self, local, cross-files)</li>
+  <li>Error/Warning/Linting diagnostics</li>
+  <li>Standard Library hover and autocomplete</li>
+  <li>Code completion</li>
+  <li>Document formatting</li>
+  <li>And more!</li>
+</ul>
+            ]]></description>
+        </server>
+
+        <!-- Map Jsonnet language to the server -->
+        <languageMapping language="Jsonnet"
+                         serverId="jsonnetLanguageServerId"
+                         languageId="jsonnet"/>
+    </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- IntelliJ Platform native LSP support -->
-        <platform.lsp.serverSupportProvider implementation="com.github.zzehring.intellijjsonnet.JsonnetLspServerSupportProvider"/>
-
         <!-- for displaying notifications by lsp -->
         <notificationGroup id="lsp" displayType="STICKY_BALLOON"/>
 

@@ -8,8 +8,9 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.platform.lsp.api.LspServerManager
-import org.eclipse.lsp4j.ExecuteCommandParams
+import com.redhat.devtools.lsp4ij.commands.CommandExecutor
+import com.redhat.devtools.lsp4ij.commands.LSPCommandContext
+import org.eclipse.lsp4j.Command
 import org.jetbrains.annotations.NotNull
 
 
@@ -26,28 +27,31 @@ class EvaluateJsonnetAction : AnAction() {
         val project = event.project ?: return
 
         try {
-            val lspServerManager = LspServerManager.getInstance(project)
-            val servers = lspServerManager.getServersForProvider(com.github.zzehring.intellijjsonnet.JsonnetLspServerSupportProvider::class.java)
+            // Create LSP command with file path as argument
+            val command = Command("Evaluate Jsonnet File", "jsonnet.evalFile", listOf(openedFile!!.path))
 
-            if (servers.isEmpty()) {
-                Notification(
-                    "lsp",
-                    "Jsonnet language server is not running",
-                    NotificationType.WARNING
-                ).notify(project)
-                return
-            }
+            // Create command context and specify our language server
+            val commandContext = LSPCommandContext(command, project)
+            commandContext.preferredLanguageServerId = "jsonnetLanguageServerId"
 
-            val params = ExecuteCommandParams("jsonnet.evalFile", listOf(openedFile!!.path))
-            servers.first().sendRequestToServer { server ->
-                server.workspaceService.executeCommand(params)
-            }.thenAccept { result ->
-                if (result != null) {
-                    tmpResultFile.writeText(result.toString())
-                    val vf = VfsUtil.findFileByIoFile(tmpResultFile, true)
-                    FileEditorManager.getInstance(project).openFile(vf!!, true)
+            // Execute the command
+            CommandExecutor.executeCommand(commandContext)
+                .response()
+                .thenAccept { result ->
+                    if (result != null) {
+                        tmpResultFile.writeText(result.toString())
+                        val vf = VfsUtil.findFileByIoFile(tmpResultFile, true)
+                        FileEditorManager.getInstance(project).openFile(vf!!, true)
+                    }
                 }
-            }
+                .exceptionally { throwable ->
+                    Notification(
+                        "lsp",
+                        "Failed to evaluate Jsonnet file: ${throwable.message}",
+                        NotificationType.ERROR
+                    ).notify(project)
+                    null
+                }
         } catch (e: Exception) {
             Notification(
                 "lsp",

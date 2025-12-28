@@ -39,13 +39,20 @@ Additional plugin features:
 
 
 ---
-This plugin uses the IntelliJ Platform's native Language Server Protocol (LSP) support to integrate with the Jsonnet Language Server.
+This plugin uses [lsp4ij](https://github.com/redhat-developer/lsp4ij) (Red Hat's LSP client for IntelliJ) to integrate with the [Grafana Jsonnet Language Server](https://github.com/grafana/jsonnet-language-server).
+
+**Benefits:**
+- ✅ Works in **Community Edition** (not just Ultimate)
+- ✅ Actively maintained by Red Hat
+- ✅ Built-in **LSP Console** for debugging language server communication
+- ✅ Full LSP feature support (completion, diagnostics, navigation, formatting, etc.)
 
 This project would not have been possible without the great work of the following projects:
 
-- [grafana/jsonnet-language-server](https://github.com/grafana/jsonnet-language-server)
-- [grafana/vscode-jsonnet](https://github.com/grafana/vscode-jsonnet)
-- [databricks/intellij-jsonnet](https://github.com/databricks/intellij-jsonnet)
+- [redhat-developer/lsp4ij](https://github.com/redhat-developer/lsp4ij) - LSP client framework
+- [grafana/jsonnet-language-server](https://github.com/grafana/jsonnet-language-server) - Jsonnet LSP server
+- [grafana/vscode-jsonnet](https://github.com/grafana/vscode-jsonnet) - VS Code Jsonnet extension
+- [databricks/intellij-jsonnet](https://github.com/databricks/intellij-jsonnet) - Original IntelliJ plugin inspiration
 
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
