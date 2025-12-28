@@ -22,6 +22,11 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.network.tls.*
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
+import java.security.KeyStore
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -51,8 +56,10 @@ class JsonnetLanguageServer(private val project: Project) : OSProcessStreamConne
         val settings = JLSSettingsStateComponent.instance.state
         val commandLine = GeneralCommandLine(binFile.absolutePath)
 
-        // Always add --tanka flag
-        commandLine.addParameter("--tanka")
+        // Add --tanka flag if enabled (fixes issue #112)
+        if (settings.enableTankaMode) {
+            commandLine.addParameter("--tanka")
+        }
 
         // Add optional flags based on settings
         if (settings.enableEvalDiagnostics) {
@@ -114,6 +121,23 @@ class JsonnetLanguageServer(private val project: Project) : OSProcessStreamConne
 
                 if (proxySettings != null && proxySettings.USE_HTTP_PROXY && proxyHost.isNotEmpty()) {
                     proxy = ProxyBuilder.http("http://${proxyHost}:${proxySettings.PROXY_PORT}/")
+                }
+
+                // Configure HTTPS to use system SSL context (fixes issue #93)
+                // This ensures corporate/custom CA certificates are trusted
+                https {
+                    try {
+                        // Get the system's default trust manager which includes JVM's trust store
+                        // This trust store includes certificates imported into IntelliJ and system CAs
+                        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+                        trustManagerFactory.init(null as KeyStore?) // null means use system default
+                        val trustManagers = trustManagerFactory.trustManagers
+                        trustManager = trustManagers.filterIsInstance<X509TrustManager>().firstOrNull()
+                            ?: throw IllegalStateException("No X509TrustManager found in system trust managers")
+                    } catch (e: Exception) {
+                        log.warn("Failed to configure custom SSL trust manager, using Ktor defaults. " +
+                                "SSL interception may not work. See issue #93", e)
+                    }
                 }
             }
             install(ContentNegotiation) {
