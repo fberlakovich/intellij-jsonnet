@@ -39,12 +39,13 @@ Additional plugin features:
 
 
 ---
+This plugin uses the IntelliJ Platform's native Language Server Protocol (LSP) support to integrate with the Jsonnet Language Server.
+
 This project would not have been possible without the great work of the following projects:
 
-- [ballerina-platform/lsp4intellij](https://github.com/ballerina-platform/lsp4intellij)
+- [grafana/jsonnet-language-server](https://github.com/grafana/jsonnet-language-server)
 - [grafana/vscode-jsonnet](https://github.com/grafana/vscode-jsonnet)
 - [databricks/intellij-jsonnet](https://github.com/databricks/intellij-jsonnet)
-- [grafana/jsonnet-language-server](https://github.com/grafana/jsonnet-language-server)
 
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 

@@ -1,15 +1,16 @@
 package com.github.zzehring.intellijjsonnet.actions
 
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.platform.lsp.api.LspServerManager
 import org.eclipse.lsp4j.ExecuteCommandParams
 import org.jetbrains.annotations.NotNull
-import org.wso2.lsp4intellij.IntellijLanguageClient
-import org.wso2.lsp4intellij.utils.FileUtils
 
 
 class EvaluateJsonnetAction : AnAction() {
@@ -22,14 +23,37 @@ class EvaluateJsonnetAction : AnAction() {
         val tmpDir = FileUtilRt.createTempDirectory("jsonnet-plugin-tmpdir", null)
         val tmpResultFile = FileUtilRt.createTempFile(tmpDir, "jsonnet-eval", ".json")
         val openedFile = event.getData(PlatformDataKeys.VIRTUAL_FILE)
-        val project = event.project
-        val params = ExecuteCommandParams("jsonnet.evalFile", listOf(openedFile!!.path))
-        IntellijLanguageClient.getAllServerWrappersFor(FileUtils.projectToUri(project)).forEach { x ->
-            val execution = x.requestManager.executeCommand(params)
-            val result: String = execution.get() as String
-            tmpResultFile.writeText(result)
+        val project = event.project ?: return
+
+        try {
+            val lspServerManager = LspServerManager.getInstance(project)
+            val servers = lspServerManager.getServersForProvider(com.github.zzehring.intellijjsonnet.JsonnetLspServerSupportProvider::class.java)
+
+            if (servers.isEmpty()) {
+                Notification(
+                    "lsp",
+                    "Jsonnet language server is not running",
+                    NotificationType.WARNING
+                ).notify(project)
+                return
+            }
+
+            val params = ExecuteCommandParams("jsonnet.evalFile", listOf(openedFile!!.path))
+            servers.first().sendRequestToServer { server ->
+                server.workspaceService.executeCommand(params)
+            }.thenAccept { result ->
+                if (result != null) {
+                    tmpResultFile.writeText(result.toString())
+                    val vf = VfsUtil.findFileByIoFile(tmpResultFile, true)
+                    FileEditorManager.getInstance(project).openFile(vf!!, true)
+                }
+            }
+        } catch (e: Exception) {
+            Notification(
+                "lsp",
+                "Failed to evaluate Jsonnet file: ${e.message}",
+                NotificationType.ERROR
+            ).notify(project)
         }
-        val vf = VfsUtil.findFileByIoFile(tmpResultFile, true)
-        FileEditorManager.getInstance(project!!).openFile(vf!!, true)
     }
 }
