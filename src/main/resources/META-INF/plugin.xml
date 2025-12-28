@@ -60,6 +60,12 @@ Features:
                 language="Jsonnet"
                 implementationClass="com.github.zzehring.intellijjsonnet.SimpleCommenter"/>
 
+        <!-- Tool Window for Live Preview -->
+        <toolWindow id="Jsonnet Preview"
+                    anchor="right"
+                    factoryClass="com.github.zzehring.intellijjsonnet.toolwindow.JsonnetPreviewToolWindowFactory"
+                    icon="/icons/pluginIcon.svg"/>
+
     </extensions>
 
     <actions>

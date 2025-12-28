@@ -149,4 +149,52 @@ class JLSSettingsTest : BasePlatformTestCase() {
         assertTrue("Tanka mode should be enabled by default for backward compatibility",
             state.enableTankaMode)
     }
+
+    @Test
+    fun testUseLocalBinaryGetterSetter() {
+        val component = JLSSettingsComponent()
+
+        component.setUseLocalBinary(true)
+        assertTrue("Local binary should be enabled", component.getUseLocalBinary())
+
+        component.setUseLocalBinary(false)
+        assertFalse("Local binary should be disabled", component.getUseLocalBinary())
+    }
+
+    @Test
+    fun testLocalBinaryPathGetterSetter() {
+        val component = JLSSettingsComponent()
+
+        val testPath = "/usr/local/bin/jsonnet-language-server"
+        component.setLocalBinaryPath(testPath)
+        assertEquals("Local binary path should be set and retrieved",
+            testPath, component.getLocalBinaryPath())
+    }
+
+    @Test
+    fun testLocalBinaryDefaultValues() {
+        val state = JLSSettingsStateComponent.SettingsState()
+
+        // Local binary should be disabled by default
+        assertFalse("Local binary should be disabled by default", state.useLocalBinary)
+        assertEquals("Local binary path should be empty by default", "", state.localBinaryPath)
+    }
+
+    @Test
+    fun testLocalBinaryStatePersistence() {
+        val stateComponent = JLSSettingsStateComponent()
+
+        // Create a state with local binary enabled
+        val customState = JLSSettingsStateComponent.SettingsState()
+        customState.useLocalBinary = true
+        customState.localBinaryPath = "/custom/path/to/binary"
+
+        // Load the state
+        stateComponent.loadState(customState)
+
+        // Verify the state was loaded
+        val loadedState = stateComponent.state
+        assertTrue("Local binary should be enabled", loadedState.useLocalBinary)
+        assertEquals("Local binary path should match", "/custom/path/to/binary", loadedState.localBinaryPath)
+    }
 }

@@ -38,6 +38,8 @@ class JLSSettingsConfigurable : Configurable {
                 || mySettingsComponent.getEnableLintDiagnostics() != settings.enableLintDiagnostics
                 || mySettingsComponent.getEnableTankaMode() != settings.enableTankaMode
                 || mySettingsComponent.getJPaths() != settings.jPaths
+                || mySettingsComponent.getUseLocalBinary() != settings.useLocalBinary
+                || mySettingsComponent.getLocalBinaryPath() != settings.localBinaryPath
     }
 
     override fun apply() {
@@ -47,6 +49,8 @@ class JLSSettingsConfigurable : Configurable {
         settings.enableLintDiagnostics = mySettingsComponent.getEnableLintDiagnostics()
         settings.enableTankaMode = mySettingsComponent.getEnableTankaMode()
         settings.jPaths = mySettingsComponent.getJPaths()
+        settings.useLocalBinary = mySettingsComponent.getUseLocalBinary()
+        settings.localBinaryPath = mySettingsComponent.getLocalBinaryPath()
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -65,6 +69,8 @@ class JLSSettingsConfigurable : Configurable {
         mySettingsComponent.setEnableLintDiagnostics(settings.enableLintDiagnostics)
         mySettingsComponent.setEnableTankaMode(settings.enableTankaMode)
         mySettingsComponent.setJPaths(settings.jPaths)
+        mySettingsComponent.setUseLocalBinary(settings.useLocalBinary)
+        mySettingsComponent.setLocalBinaryPath(settings.localBinaryPath)
     }
 
 }

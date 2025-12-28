@@ -47,7 +47,7 @@ class JsonnetLanguageServer(private val project: Project) : OSProcessStreamConne
     private val log = Logger.getInstance(JsonnetLanguageServer::class.java)
 
     init {
-        val binFile = ensureBinaryDownloaded()
+        val binFile = ensureBinaryAvailable()
         val commandLine = createCommandLine(binFile)
         setCommandLine(commandLine)
     }
@@ -83,8 +83,34 @@ class JsonnetLanguageServer(private val project: Project) : OSProcessStreamConne
         return commandLine
     }
 
-    private fun ensureBinaryDownloaded(): File {
-        val languageServerRepo = JLSSettingsStateComponent.instance.state.releaseRepository
+    private fun ensureBinaryAvailable(): File {
+        val settings = JLSSettingsStateComponent.instance.state
+
+        // If using local binary, validate and return it
+        if (settings.useLocalBinary) {
+            val localBinaryPath = settings.localBinaryPath
+            if (localBinaryPath.isEmpty()) {
+                log.error("Local binary is enabled but path is not configured")
+                throw IllegalStateException("Local binary path is not configured. Please configure it in Settings > Jsonnet Language Server")
+            }
+
+            val localBinary = File(localBinaryPath)
+            if (!localBinary.exists()) {
+                log.error("Local binary does not exist: ${localBinary.absolutePath}")
+                throw IllegalStateException("Local binary file does not exist: ${localBinary.absolutePath}")
+            }
+
+            if (!localBinary.canExecute()) {
+                log.warn("Local binary is not executable, attempting to set executable permissions: ${localBinary.absolutePath}")
+                setExecutablePerms(localBinary)
+            }
+
+            log.info("Using local language server binary: ${localBinary.absolutePath}")
+            return localBinary
+        }
+
+        // Otherwise, proceed with auto-download logic
+        val languageServerRepo = settings.releaseRepository
         val platform = getPlatform()
         val arch = getArch()
 

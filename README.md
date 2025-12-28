@@ -17,8 +17,10 @@ Provides language support for Jsonnet files (e.g. `.jsonnet`, `.libsonnet`). Lan
 
 Additional plugin features:
 
+- **Live Preview Panel** - Real-time preview of evaluated Jsonnet output with auto-refresh on save
+- **Local Binary Support** - Use your own language server binary (for air-gapped environments)
 - Auto update for the language server binary
-- Evaluate Jsonnet file
+- Evaluate Jsonnet file (Tools menu)
 - Syntax Highlighting
 - Code block folding
 - Brace/bracket matching
