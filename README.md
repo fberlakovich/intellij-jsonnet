@@ -17,7 +17,7 @@ Provides language support for Jsonnet files (e.g. `.jsonnet`, `.libsonnet`). Lan
 
 Additional plugin features:
 
-- Auto update for the language server binary
+- Update notifications for the language server binary through LSP4IJ
 - Evaluate Jsonnet file
 - Syntax Highlighting
 - Code block folding
